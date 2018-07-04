@@ -4,9 +4,9 @@
 
 ### 技术栈
 
-我们使用Go语言和Beego框架（通过beego/orm）。
+我们使用Go语言和Beego框架。
 
-数据库使用Postgres。
+数据库使用Postgres（通过beego/orm）。
 
 **考虑**使用GraphQL。
 
