@@ -92,14 +92,15 @@
   1. 去掉虚词（and、or、the）
 
   2. 使用标准缩写，一些缩写如下：
-  
-       | 全称     | 缩写 |
-       | -------- | ---- |
-       | index    | idx  |
-       | object   | obj  |
-       | document | doc  |
-       | text     | txt  |
-       | position | pos  |
+
+       | 全称        | 缩写 |
+       | ----------- | ---- |
+       | index       | idx  |
+       | object      | obj  |
+       | document    | doc  |
+       | text        | txt  |
+       | position    | pos  |
+       | information | info |
 
   3. 去掉所有非前置元音（但保证单词仍然能被拼读出来）（eg. computer -> cmptr，screen -> scrn）
 
