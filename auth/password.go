@@ -5,8 +5,8 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/base64"
-	"fmt"
 	"io"
+	"log"
 )
 
 const saltSize = 64
@@ -15,7 +15,7 @@ func makePassword(rawPassword string) string {
 	buffer := make([]byte, saltSize, saltSize+sha1.Size)
 	_, err := io.ReadFull(rand.Reader, buffer)
 	if err != nil {
-		fmt.Println("random read failed ->", err)
+		log.Fatal("random read failed ->", err)
 	}
 
 	hash := sha1.New()
@@ -28,7 +28,7 @@ func makePassword(rawPassword string) string {
 func checkPassword(rawPossiblePassword string, user User) bool {
 	data, _ := base64.URLEncoding.DecodeString(user.PasswordHash)
 	if len(data) != saltSize+sha1.Size {
-		fmt.Println("wrong length of data")
+		log.Fatal("wrong length of data")
 		return false
 	}
 	hash := sha1.New()

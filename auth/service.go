@@ -2,14 +2,21 @@ package auth
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 )
 
 func authHandler(writer http.ResponseWriter, request *http.Request) {
-	request.ParseForm()
-	username := request.Form["username"][0]
-	password := request.Form["password"][0]
-	user, err := validateUser(username, password)
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return
+	}
+	var authInfo struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	err = json.Unmarshal(body, &authInfo)
+	user, err := validateUser(authInfo.Username, authInfo.Password)
 	if user == nil || err != nil {
 		return
 	}
@@ -23,12 +30,19 @@ type CreateResultJson struct {
 }
 
 func createUserHandler(writer http.ResponseWriter, request *http.Request) {
-	request.ParseForm()
-	username := request.Form["username"][0]
-	password := request.Form["password"][0]
-	mail := request.Form["mail"][0]
-	// todo: 增加密码、邮箱验证逻辑
-	_, err := createUser(username, password, mail)
+	body, err := ioutil.ReadAll(request.Body)
+	if err == nil {
+		var createInfo struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+			Mail     string `json:"mail"`
+		}
+		err = json.Unmarshal(body, &createInfo)
+		if err == nil {
+			// todo: 增加密码、邮箱验证逻辑
+			_, err = createUser(createInfo.Username, createInfo.Password, createInfo.Mail)
+		}
+	}
 	result := CreateResultJson{Result: err == nil}
 	writer.Header().Set("Content-Type", "application/json")
 	resultAsByte, _ := json.Marshal(result)
