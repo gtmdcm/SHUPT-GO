@@ -3,7 +3,7 @@ package models
 import "github.com/astaxie/beego/orm"
 
 type User struct {
-	Id       int
+	Id       uint64
 	CardId   string
 	NickName string
 	Post     []*Post `orm:"reverse(many)"`

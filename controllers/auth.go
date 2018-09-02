@@ -2,49 +2,84 @@ package controllers
 
 import (
 	"SHUPT-GO/models"
+	"SHUPT-GO/tools/jwt"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego/context"
 	"github.com/astaxie/beego/orm"
 	"io/ioutil"
 	"net/http"
 )
 
+const loginBackend = "https://www.shuhelper.cn/api/users/login/"
+
+type message struct {
+	Success bool `json:"success"`
+}
+
+type failMessage struct {
+	message
+	Reason string `json:"reason"`
+}
+
+func newFailMessage(reason string) failMessage {
+	return failMessage{
+		message{false},
+		reason,
+	}
+}
+
+type successMessage struct {
+	message
+	NewUser bool   `json:"new_user"`
+	Token   string `json:"token"`
+}
+
+func newSuccessMessage(newUser bool, userId uint64) successMessage {
+	return successMessage{
+		message{true},
+		newUser,
+		jwt.MakeToken(userId),
+	}
+}
+
+type userInfo struct {
+	CardId   string `json:"card_id"`
+	Password string `json:"password"`
+}
+
+type simulateLoginResponse struct {
+	Name string `json:"name"`
+}
+
 func AuthHandler(ctx *context.Context) {
-	userInfo := struct {
-		CardId   string `json:"card_id"`
-		Password string `json:"password"`
-	}{"", ""}
+	ctx.Output.ContentType("json")
+	var userInfo userInfo
 	json.Unmarshal(ctx.Input.RequestBody, &userInfo)
-	response, err := http.Post("https://www.shuhelper.cn/api/users/login/", "application/json",
+
+	response, err := http.Post(loginBackend, "application/json",
 		bytes.NewBuffer(ctx.Input.RequestBody))
 	if err != nil {
-		ctx.Output.Body([]byte("登录服务GG了……"))
+		msg, _ := json.Marshal(newFailMessage("登录服务GG了……"))
+		ctx.Output.Body(msg)
 		return
 	}
 	if response.StatusCode != 200 {
-		ctx.Output.Body([]byte("您的登录信息有误"))
+		msg, _ := json.Marshal(newFailMessage("您的信息有误"))
+		ctx.Output.Body(msg)
 		return
 	}
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
-	responseUserInfo := struct {
-		Name string `json:"name"`
-	}{}
-	json.Unmarshal(body, &responseUserInfo)
+	var simulateLoginResponse simulateLoginResponse
+	json.Unmarshal(body, &simulateLoginResponse)
 	orm_ := orm.NewOrm()
-	user := new(models.User)
-	querySeter := orm_.QueryTable(user)
-	err = querySeter.Filter("card_id", userInfo.CardId).One(user)
-	if err == orm.ErrNoRows {
-		user.CardId = userInfo.CardId
-		user.NickName = responseUserInfo.Name
-		orm_.Insert(user)
-		ctx.Output.Body([]byte("注册成功"))
-		return
+	user := models.User{CardId: userInfo.CardId, NickName: simulateLoginResponse.Name}
+	if created, id, _ := orm_.ReadOrCreate(&user, "card_id"); err == nil {
+		msg, _ := json.Marshal(newSuccessMessage(created, uint64(id)))
+		ctx.Output.Body(msg)
 	}
-	ctx.Output.Body([]byte("登录成功"))
+	panic("Should never reach this")
 }
