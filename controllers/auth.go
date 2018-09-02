@@ -56,9 +56,14 @@ func AuthHandler(ctx *context.Context) {
 	ctx.Output.ContentType("json")
 	var userInfo userInfo
 	json.Unmarshal(ctx.Input.RequestBody, &userInfo)
-
 	response, err := http.Post(loginBackend, "application/json",
 		bytes.NewBuffer(ctx.Input.RequestBody))
+	retryCount := 0
+	for err != nil && retryCount < 5 {
+		response, err = http.Post(loginBackend, "application/json",
+			bytes.NewBuffer(ctx.Input.RequestBody))
+		retryCount++
+	}
 	if err != nil {
 		msg, _ := json.Marshal(newFailMessage("登录服务GG了……"))
 		ctx.Output.Body(msg)
@@ -80,6 +85,7 @@ func AuthHandler(ctx *context.Context) {
 	if created, id, _ := orm_.ReadOrCreate(&user, "card_id"); err == nil {
 		msg, _ := json.Marshal(newSuccessMessage(created, uint64(id)))
 		ctx.Output.Body(msg)
+		return
 	}
 	panic("Should never reach this")
 }
