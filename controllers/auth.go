@@ -52,26 +52,26 @@ type simulateLoginResponse struct {
 	Name string `json:"name"`
 }
 
-func AuthHandler(ctx *context.Context) {
-	ctx.Output.ContentType("json")
+func AuthHandler(context *context.Context) {
+	context.Output.ContentType("json")
 	var userInfo userInfo
-	json.Unmarshal(ctx.Input.RequestBody, &userInfo)
+	json.Unmarshal(context.Input.RequestBody, &userInfo)
 	response, err := http.Post(loginBackend, "application/json",
-		bytes.NewBuffer(ctx.Input.RequestBody))
+		bytes.NewBuffer(context.Input.RequestBody))
 	retryCount := 0
 	for err != nil && retryCount < 5 {
 		response, err = http.Post(loginBackend, "application/json",
-			bytes.NewBuffer(ctx.Input.RequestBody))
+			bytes.NewBuffer(context.Input.RequestBody))
 		retryCount++
 	}
 	if err != nil {
 		msg, _ := json.Marshal(newFailMessage("登录服务GG了……"))
-		ctx.Output.Body(msg)
+		context.Output.Body(msg)
 		return
 	}
 	if response.StatusCode != 200 {
 		msg, _ := json.Marshal(newFailMessage("您的信息有误"))
-		ctx.Output.Body(msg)
+		context.Output.Body(msg)
 		return
 	}
 	body, err := ioutil.ReadAll(response.Body)
@@ -84,7 +84,7 @@ func AuthHandler(ctx *context.Context) {
 	user := models.User{CardId: userInfo.CardId, NickName: simulateLoginResponse.Name}
 	if created, id, _ := orm_.ReadOrCreate(&user, "card_id"); err == nil {
 		msg, _ := json.Marshal(newSuccessMessage(created, uint64(id)))
-		ctx.Output.Body(msg)
+		context.Output.Body(msg)
 		return
 	}
 	panic("Should never reach this")
