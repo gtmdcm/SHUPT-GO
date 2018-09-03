@@ -169,3 +169,4 @@ fabric.properties
 .idea
 /data/
 /logfile
+/graphQL/schema/bindata.go

@@ -1,0 +1,55 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    getUser(id: ID!): User
+    getPost(id: ID!): Post
+    getComment(id: ID!): Comment
+}
+
+type Mutation {
+    addUser(user: UserInput!): User
+    addPost(post: PostInput!): Post
+    addComment(comment: CommentInput!): Comment
+}
+
+type User {
+    Id: ID!
+    Nickname: String!
+    CardId: String!
+    Posts: [Post!]
+}
+
+input UserInput {
+    Nickname: String!
+    CardId: String!  
+}
+
+type Post {
+    Id: ID!
+    Title: String!
+    Content: String!
+    Creator: User!
+    Comments: [Comment!]
+}
+
+input PostInput {
+    Title: String!
+    Content: String!
+    CreatorId: ID!
+}
+
+type Comment {
+    Id: ID!
+    Content: String!
+    Creator: User!
+    BelongToPost: Post!
+}
+
+input CommentInput {
+    Content: String!
+    CreatorId: ID!
+    BelongToPostId: ID!
+}
