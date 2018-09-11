@@ -7,5 +7,5 @@ import (
 
 func init() {
 	beego.Post("/auth/login", controllers.AuthHandler)
-	beego.Any("/graphql", controllers.GraphQLController)
+	beego.Post("/graphql", controllers.GraphQLController)
 }
